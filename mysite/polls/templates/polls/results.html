@@ -1,0 +1,41 @@
+<h1>{{ question.question_text }}</h1>
+
+<ul>
+{% for choice in question.choice_set.all %}
+    <li>{{ choice.choice_text }} -- {{ choice.votes }}  vote{{ choice.votes|pluralize }} &nbsp;&nbsp;<a id="{{ choice.id }}" href="#">voters</a></li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'polls:detail' question.id%}">Vote again?</a>
+
+<ol id="voters">
+</ol>
+
+{% block javascript %}
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+    <script>
+        $("a").click(function () {
+            choice_id = $(this).attr("id")
+
+            $.ajax({
+              url: '{% url "polls:get_voters" %}',
+              data: {
+                  'choice_id': choice_id
+              },
+              dataType: 'json',
+              success: function (data) {
+                  if (data.voters_list) {
+                      document.getElementById("voters").innerHTML = "";
+                      data = JSON.parse(data.voters_list)
+                      for(var i=0; i<data.length; i++){
+                          var node = document.createElement("li");
+                          var text_node = document.createTextNode(data[i].voter_name);
+                          node.appendChild(text_node);
+                          document.getElementById("voters").appendChild(node);
+                      }
+                  }
+              }
+            });
+    });
+    </script>
+{% endblock %}
